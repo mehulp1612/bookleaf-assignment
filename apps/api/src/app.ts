@@ -10,6 +10,8 @@ import { installAuthentication } from './modules/auth/http.js';
 import type { AuthOptions } from './modules/auth/service.js';
 import { installCatalog } from './modules/catalog/http.js';
 import type { CatalogService } from './modules/catalog/service.js';
+import { installTickets } from './modules/tickets/http.js';
+import type { TicketService } from './modules/tickets/service.js';
 
 interface AppOptions {
   database: DatabaseHealth;
@@ -17,6 +19,7 @@ interface AppOptions {
   webRoot?: string;
   auth?: AuthOptions;
   catalog?: CatalogService;
+  tickets?: TicketService;
 }
 
 export async function buildApp(options: AppOptions) {
@@ -52,6 +55,7 @@ export async function buildApp(options: AppOptions) {
     });
 
   if (options.catalog) installCatalog(app, options.catalog);
+  if (options.tickets) installTickets(app, options.tickets);
   app.get('/health/live', async () => healthResponseSchema.parse({ data: { status: 'ok' } }));
   app.get('/health/ready', async (_request, reply) => {
     reply.header('cache-control', 'no-store');

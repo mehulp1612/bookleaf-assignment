@@ -1,5 +1,7 @@
 # Architecture and scope
 
+M04 implementation: ticket mutations serialize on a database row lock, with optimistic revision checks for edits and new public replies. A durable per-ticket/admin idempotency key protects reply retries. Classification jobs are inserted in the ticket-creation transaction; no worker or provider is called. The internal result-application method checks active job generation and lease, preserves independent overrides, and completes the job atomically. See [Ticket management](tickets.md) for the exact M05/M06 integration boundary.
+
 M03 implementation: the catalog extends M02's Author table in place and adds Book. Author profile columns remain nullable for identity-only anchors, while catalog import requires complete profiles. Imports and combined demo seeds use atomic transactions and never delete records missing from the sample. Currency is stored as bounded BIGINT paise, dates as DATE, and nullable production fields remain null. Read endpoints and internal context helpers enforce ownership using the persisted authentication principal. See [Catalog](catalog.md) for migration, import, and module integration details.
 
 ## Product goal

@@ -1,8 +1,8 @@
 // M02 owns identity; M03 owns Author metadata and Book.
 generator client {
-  provider = "prisma-client"
-  output = "../src/generated/prisma"
-  moduleFormat = "esm"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
   importFileExtension = "js"
 }
 
@@ -24,6 +24,7 @@ model Author {
   joinedDate DateTime? @db.Date
   user       User?
   books      Book[]
+  tickets    Ticket[]
 }
 
 model Book {
@@ -36,28 +37,33 @@ model Book {
   publicationDate           DateTime? @db.Date
   status                    String
   mrpPaise                  BigInt?
-  authorRoyaltyPerCopyPaise  BigInt?
+  authorRoyaltyPerCopyPaise BigInt?
   totalCopiesSold           Int
-  totalRoyaltyEarnedPaise    BigInt
-  royaltyPaidPaise           BigInt
-  royaltyPendingPaise        BigInt
-  lastRoyaltyPayoutDate      DateTime? @db.Date
+  totalRoyaltyEarnedPaise   BigInt
+  royaltyPaidPaise          BigInt
+  royaltyPendingPaise       BigInt
+  lastRoyaltyPayoutDate     DateTime? @db.Date
   printPartner              String?
   availableOn               String[]
+  tickets                   Ticket[]
 
   @@index([authorId, id])
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  displayName  String
-  passwordHash String
-  role         Role
-  authorId     String?   @unique
-  author       Author?   @relation(fields: [authorId], references: [id], onDelete: Restrict)
-  sessions     Session[]
-  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  id              String        @id @default(uuid())
+  email           String        @unique
+  displayName     String
+  passwordHash    String
+  role            Role
+  authorId        String?       @unique
+  author          Author?       @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  sessions        Session[]
+  assignedTickets Ticket[]
+  replies         TicketReply[]
+  notes           TicketNote[]
+  events          TicketEvent[]
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
 }
 
 model Session {
@@ -77,4 +83,148 @@ model LoginThrottle {
   expiresAt DateTime @db.Timestamptz(3)
 
   @@index([expiresAt])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TicketCategory {
+  ROYALTY_PAYMENTS
+  ISBN_METADATA
+  PRINTING_QUALITY
+  DISTRIBUTION_AVAILABILITY
+  BOOK_STATUS_PRODUCTION
+  GENERAL_INQUIRY
+}
+
+enum ClassificationSource {
+  DEFAULT
+  AI
+  MANUAL
+}
+
+enum JobState {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum JobTask {
+  CLASSIFICATION
+}
+
+enum TicketEventType {
+  STATUS_CHANGED
+  ASSIGNMENT_CHANGED
+  CATEGORY_CHANGED
+  PRIORITY_CHANGED
+}
+
+model Ticket {
+  id                      String               @id @default(uuid())
+  authorId                String
+  author                  Author               @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  bookId                  String?
+  book                    Book?                @relation(fields: [bookId], references: [id], onDelete: Restrict)
+  subject                 String
+  description             String
+  status                  TicketStatus         @default(OPEN)
+  category                TicketCategory?
+  priority                TicketPriority       @default(MEDIUM)
+  categorySource          ClassificationSource @default(DEFAULT)
+  prioritySource          ClassificationSource @default(DEFAULT)
+  categoryOverridden      Boolean              @default(false)
+  priorityOverridden      Boolean              @default(false)
+  suggestedCategory       TicketCategory?
+  suggestedPriority       TicketPriority?
+  classificationRationale String?
+  classificationState     JobState             @default(QUEUED)
+  classificationJobId     String?
+  classificationRevision  Int                  @default(0)
+  contextRevision         Int                  @default(0)
+  assigneeId              String?
+  assignee                User?                @relation(fields: [assigneeId], references: [id], onDelete: Restrict)
+  revision                Int                  @default(0)
+  createdAt               DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime             @default(now()) @db.Timestamptz(3)
+  replies                 TicketReply[]
+  notes                   TicketNote[]
+  events                  TicketEvent[]
+  jobs                    AiJob[]
+
+  @@index([authorId, createdAt, id])
+  @@index([status, priority, createdAt, id])
+}
+
+model TicketReply {
+  id             String   @id @default(uuid())
+  ticketId       String
+  ticket         Ticket   @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  senderId       String
+  sender         User     @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  body           String
+  idempotencyKey String
+  requestHash    String
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([ticketId, senderId, idempotencyKey])
+  @@index([ticketId, createdAt, id])
+}
+
+model TicketNote {
+  id        String   @id @default(uuid())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  creatorId String
+  creator   User     @relation(fields: [creatorId], references: [id], onDelete: Restrict)
+  body      String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([ticketId, createdAt, id])
+}
+
+model TicketEvent {
+  id        String          @id @default(uuid())
+  ticketId  String
+  ticket    Ticket          @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  actorId   String?
+  actor     User?           @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  type      TicketEventType
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime        @default(now()) @db.Timestamptz(3)
+
+  @@index([ticketId, createdAt, id])
+}
+
+model AiJob {
+  id               String    @id @default(uuid())
+  ticketId         String
+  ticket           Ticket    @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  task             JobTask   @default(CLASSIFICATION)
+  deduplicationKey String    @unique
+  state            JobState  @default(QUEUED)
+  attempts         Int       @default(0)
+  availableAt      DateTime  @default(now()) @db.Timestamptz(3)
+  leaseToken       String?
+  leaseExpiresAt   DateTime? @db.Timestamptz(3)
+  contextRevision  Int
+  failureReason    String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  completedAt      DateTime? @db.Timestamptz(3)
+
+  @@index([state, availableAt])
+  @@index([ticketId])
 }

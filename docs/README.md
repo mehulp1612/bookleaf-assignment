@@ -1,6 +1,6 @@
 # BookLeaf implementation guide
 
-Build the Author Support and Communication Portal in small, independently testable modules. This directory records the agreed scope, interfaces, and prompts for implementing each module. M01 foundations, M02 backend identity, and M03 catalog are implemented. M02 live PostgreSQL and HTTP integration checks pass; M01 web build/browser verification remains outstanding. Catalog PostgreSQL and live HTTP checks pass. Tickets and AI workflows are not implemented yet.
+Build the Author Support and Communication Portal in small, independently testable modules. This directory records the agreed scope, interfaces, and prompts for implementing each module. M01 foundations, M02 identity, M03 catalog, and M04 manual ticket API are implemented. PostgreSQL and live HTTP checks cover identity, catalog, and tickets. M01 web build/browser verification remains outstanding. AI provider calls, job execution, and frontend workflows are not implemented yet.
 
 ## Read in this order
 
@@ -11,6 +11,7 @@ Build the Author Support and Communication Portal in small, independently testab
 5. [Local setup](../README.md) and [M01 verification](m01-verification.md): commands, evidence, and outstanding checks.
 6. [Identity and access](identity.md): M02 security behavior, migration/seed instructions, and verification.
 7. [Catalog](catalog.md): M03 import, ownership/context helpers, tests, and integration dependencies.
+8. [Ticket management](tickets.md): M04 API, revision/idempotency behavior, job boundary, and verification.
 
 ## Fastest implementation path
 
@@ -33,14 +34,16 @@ Modules can also be developed independently against the contracts and fixtures. 
 
 ## Progress
 
-M03 verification: 30 tests pass (24 API, 6 contracts), including real PostgreSQL migrations and HTTP tests; none skipped. Workspace typechecking, contracts/API builds, and Prisma validation/generation pass. Tests were compiled and run directly because the standard launcher needs blocked child processes. Application deployment of the new migration remains blocked by schema-engine EPERM; run `npm run db:deploy`, then `npm run db:import` or configured `npm run db:seed` locally. Next: M04 Ticket management.
+M04 regression results: 42 tests passed (36 API including the M04 parent test and its 11 behavior groups, plus 6 contract tests), with no skips. Real PostgreSQL and HTTP integration tests passed for M02–M04. Workspace typechecking, contracts/API builds, Prisma validation/generation, lint, and formatting passed. Tests were compiled and executed directly because this environment blocks the standard launcher's subprocesses. The existing M01 Vite/browser limitation remains; M04 changes no web code.
+
+M03 migration and demo seed completed successfully in the application database, as confirmed by the user. M04 adds a new migration; run `npm run db:deploy` locally because agent-side schema-engine execution is blocked by EPERM. No new seed is required. See [M04 verification](tickets.md) for database/HTTP coverage and the distinction between queued jobs and a running worker. Next in the agreed delivery sequence: M07 Author interface, then M08 Admin interface; M05/M06 remain separate backend work.
 
 | Module                       | Status                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------------------ |
 | M01 Foundation and contracts | Implemented; 12 tests pass; web/runtime acceptance checks remain (see verification report) |
 | M02 Identity and access      | Complete; security, seed, PostgreSQL, and real HTTP integration checks pass                |
-| M03 Author and book catalog  | Implemented; DB/HTTP checks pass; application migration/import pending                     |
-| M04 Ticket management        | Not started                                                                                |
+| M03 Author and book catalog  | Complete; DB/HTTP checks pass; user confirmed application migration and seed               |
+| M04 Ticket management        | Implemented; DB/HTTP checks pass; application migration pending                            |
 | M05 Knowledge base and AI    | Not started                                                                                |
 | M06 Background execution     | Not started                                                                                |
 | M07 Author interface         | Not started                                                                                |

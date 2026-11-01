@@ -4,14 +4,17 @@ import { ConfigurationError, loadEnvironment } from './infrastructure/config.js'
 import { createDatabase } from './infrastructure/database.js';
 import { createPrismaAuthStore } from './modules/auth/prisma-store.js';
 import { createCatalogService } from './modules/catalog/service.js';
+import { createTicketService } from './modules/tickets/service.js';
 
 async function main() {
   const env = loadEnvironment();
   const database = createDatabase(env.DATABASE_URL);
+  const catalog = createCatalogService(database.client);
   const app = await buildApp({
     database,
     logLevel: env.LOG_LEVEL,
-    catalog: createCatalogService(database.client),
+    catalog,
+    tickets: createTicketService(database.client, catalog),
     auth: {
       store: createPrismaAuthStore(database.client),
       appOrigin: env.APP_ORIGIN,
