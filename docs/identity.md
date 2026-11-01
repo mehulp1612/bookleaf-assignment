@@ -57,7 +57,7 @@ Counters survive process restarts and work across instances sharing PostgreSQL. 
 
 The migration creates User, Session, LoginThrottle, Role, and a minimal Author table containing only the original author ID. It enforces unique normalized emails, unique author links, foreign keys, and the role/author-link invariant. Author deletion is restricted while linked to a user; deleting a user removes their sessions.
 
-This identity anchor is intentional coordination with M03. M03 must extend the existing Author table and backfill its ten ID rows before enforcing new required profile fields. It must not recreate authors or replace their IDs. No books or catalog profiles are imported by M02.
+This identity anchor is intentional coordination with M03. M03 extends the existing Author table and imports its profiles. Profile columns remain nullable to preserve identity-only anchors; catalog import requires complete profiles. It must not recreate authors or replace their IDs. No books or catalog profiles are imported by M02.
 
 Set these in the ignored root `.env` or deployment secret settings:
 
@@ -99,4 +99,4 @@ node .tmp/m02-api-check/test/seed.test.js
 node .tmp/m02-api-check/test/identity-db.test.js
 ```
 
-M03 is the next implementation module. M07/M08 will supply the sign-in interface; this checkpoint does not provide browser login screens.
+M03 now adds catalog import to the combined db:seed command; see [Catalog](catalog.md). M04 is the next implementation module. M07/M08 will supply the sign-in interface; this checkpoint does not provide browser login screens.

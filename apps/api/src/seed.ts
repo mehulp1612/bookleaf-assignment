@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { loadEnvironment } from './infrastructure/config.js';
 import { createDatabase } from './infrastructure/database.js';
-import { seedIdentity } from './modules/auth/seed.js';
+import { seedDemoData } from './seed-data.js';
 
 async function main() {
   const env = loadEnvironment();
@@ -13,9 +13,9 @@ async function main() {
         'utf8',
       ),
     );
-    const counts = await seedIdentity(database.client, data, process.env);
+    const counts = await seedDemoData(database.client, data, process.env);
     console.log(
-      `Demo identity seed complete: ${counts.users} users, ${counts.authors} author identities. No books imported.`,
+      `Demo seed complete: ${counts.users} users, ${counts.authors} authors, ${counts.books} books.`,
     );
   } finally {
     await database.close();
@@ -24,7 +24,7 @@ async function main() {
 main().catch(() => {
   // Zod/SQL error detail can contain environment secrets; do not print it.
   console.error(
-    'Identity seed failed. Check migrations, sample data, and demo environment configuration. No credentials are printed.',
+    'Demo seed failed. Check migrations, sample data, and demo environment configuration. No credentials are printed.',
   );
   process.exitCode = 1;
 });

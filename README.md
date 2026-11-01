@@ -1,6 +1,6 @@
 # BookLeaf Author Support
 
-React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01 foundations and M02 backend identity are implemented. Catalog import, ticket workflows, AI calls, and sign-in screens are not implemented yet.
+React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01 foundations, M02 backend identity, and M03 catalog are implemented. Ticket workflows, AI calls, and sign-in screens are not implemented yet.
 
 ## Current verification status
 
@@ -56,7 +56,7 @@ Open `http://localhost:5173`. Vite serves the web application; Fastify listens o
 
 Root `npm run dev` builds and watches contracts, generates Prisma, and runs the API and web watchers together. Stop with Ctrl+C. Update `PORT`, `WEB_PORT`, and `APP_ORIGIN` consistently if you use different ports. Environment values already supplied by the operating system take precedence over `.env`.
 
-The schema includes identity/session/throttle tables and minimal Author ID anchors. Configure the dedicated demo password variables from `.env.example`, then run `npm run db:deploy` and `npm run db:seed`. See [demo seed instructions](docs/identity.md). M03 will extend authors and import books; M02 imports no books.
+The schema includes identity/session/throttle tables, author profiles, and books. Configure the dedicated demo password variables from `.env.example`, then run `npm run db:deploy` and `npm run db:seed`. See [demo seed instructions](docs/identity.md). The combined seed imports 10 authors and 18 books and links demo accounts. Use `npm run db:import` for catalog-only import without changing login accounts. See [Catalog](docs/catalog.md). The M03 application migration is pending; run `npm run db:deploy` from your normal terminal.
 
 ## Commands
 
@@ -76,7 +76,7 @@ The schema includes identity/session/throttle tables and minimal Author ID ancho
 | `npm run start`        | Start built API; serves web assets when NODE_ENV=production                                    |
 | `npm run smoke`        | Start a temporary real HTTP server and check PostgreSQL readiness, built web HTML, and API 404 |
 
-`npm run db:deploy` applies committed migrations; `npm run db:seed` builds the API and seeds demo identities. For future schema changes, pass arguments directly to Prisma's workspace script: `npm run db:migrate -w @bookleaf/api -- --name catalog`.
+`npm run db:deploy` applies committed migrations; `npm run db:seed` builds the API and seeds demo identities and catalog data. `npm run db:import` imports catalog data without requiring demo passwords. For future schema changes, pass arguments directly to Prisma's workspace script: `npm run db:migrate -w @bookleaf/api -- --name catalog`.
 
 ## Implemented HTTP endpoints
 
@@ -87,7 +87,7 @@ The schema includes identity/session/throttle tables and minimal Author ID ancho
 
 Unknown API paths return a JSON 404. Error envelopes contain `code`, a safe `message`, optional validation `fieldErrors`, and a generated `requestId`; `x-request-id` is returned as a response header. Readiness does not cache results. Database connection/query timeouts are bounded.
 
-The three identity endpoints are implemented: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. Mutations require an exact matching Origin and `X-BookLeaf-Request: 1`; details are in [Identity and access](docs/identity.md). Other business endpoints still exist only as shared schemas. Health endpoints remain public; registered API routes are authenticated by default. Record ownership checks follow in M03/M04.
+The three identity endpoints are implemented: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. Mutations require an exact matching Origin and `X-BookLeaf-Request: 1`; details are in [Identity and access](docs/identity.md). M03 implements protected `GET /api/v1/books` and `GET /api/v1/books/:id`. Other business endpoints still exist only as shared schemas. Health endpoints remain public; registered API routes are authenticated by default. Book queries enforce server-side ownership.
 
 ## Production serving
 
@@ -113,7 +113,7 @@ Fastify serves hashed Vite assets with long-lived caching and the HTML document 
 - Money uses integer paise. Calendar dates retain YYYY-MM-DD. Production nulls are distinct from zero.
 - AI draft output is a discriminated union: NOT_REQUESTED has only state; QUEUED/RUNNING have metadata; SUCCEEDED adds text; FAILED adds a safe reason.
 
-See the [implementation guide](docs/README.md) for module prompts and the next step, **M03 Author and book catalog**.
+See the [implementation guide](docs/README.md) for module prompts and the next step, **M04 Ticket management**.
 
 ## Framework references
 

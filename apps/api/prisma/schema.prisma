@@ -1,4 +1,4 @@
-// M02 owns identity. M03 extends Author with catalog fields and books.
+// M02 owns identity; M03 owns Author metadata and Book.
 generator client {
   provider = "prisma-client"
   output = "../src/generated/prisma"
@@ -16,8 +16,36 @@ enum Role {
 }
 
 model Author {
-  id   String @id
-  user User?
+  id         String    @id
+  name       String?
+  email      String?
+  phone      String?
+  city       String?
+  joinedDate DateTime? @db.Date
+  user       User?
+  books      Book[]
+}
+
+model Book {
+  id                        String    @id
+  authorId                  String
+  author                    Author    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  title                     String
+  isbn                      String
+  genre                     String
+  publicationDate           DateTime? @db.Date
+  status                    String
+  mrpPaise                  BigInt?
+  authorRoyaltyPerCopyPaise  BigInt?
+  totalCopiesSold           Int
+  totalRoyaltyEarnedPaise    BigInt
+  royaltyPaidPaise           BigInt
+  royaltyPendingPaise        BigInt
+  lastRoyaltyPayoutDate      DateTime? @db.Date
+  printPartner              String?
+  availableOn               String[]
+
+  @@index([authorId, id])
 }
 
 model User {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { PrismaClient } from '../../generated/prisma/client.js';
+import type { Prisma, PrismaClient } from '../../generated/prisma/client.js';
 import { hashPassword } from './passwords.js';
 
 export const seedAuthorsSchema = z
@@ -33,11 +33,7 @@ export const seedCredentialsSchema = z
     message: 'Admin and author demo passwords must differ.',
   });
 
-export async function seedIdentity(
-  client: PrismaClient,
-  rawAuthors: unknown,
-  rawCredentials: unknown,
-) {
+export async function prepareIdentitySeed(rawAuthors: unknown, rawCredentials: unknown) {
   const { authors } = seedAuthorsSchema.parse(rawAuthors);
   const credentials = seedCredentialsSchema.parse(rawCredentials);
   if (authors.some((author) => author.email === credentials.DEMO_ADMIN_EMAIL)) {
@@ -61,34 +57,44 @@ export async function seedIdentity(
       passwordHash,
     })),
   ]);
-  await client.$transaction(
-    async (tx) => {
-      for (const author of authors) {
-        await tx.author.upsert({
-          where: { id: author.author_id },
-          create: { id: author.author_id },
-          update: {},
-        });
-      }
-      for (const user of users) {
-        const existing = await tx.user.findUnique({ where: { id: user.id } });
-        if (existing && (existing.role !== user.role || existing.authorId !== user.authorId)) {
-          throw new Error('Existing identity conflicts with demo seed.');
-        }
-        const rotate = credentials.DEMO_RESET_PASSWORDS === 'true';
-        await tx.user.upsert({
-          where: { id: user.id },
-          create: user,
-          update: {
-            email: user.email,
-            displayName: user.displayName,
-            ...(rotate ? { passwordHash: user.passwordHash } : {}),
-          },
-        });
-        if (rotate) await tx.session.deleteMany({ where: { userId: user.id } });
-      }
-    },
-    { timeout: 15000 },
-  );
+  return { authors, users, rotate: credentials.DEMO_RESET_PASSWORDS === 'true' };
+}
+
+export async function writeIdentitySeed(
+  tx: Prisma.TransactionClient,
+  { authors, users, rotate }: Awaited<ReturnType<typeof prepareIdentitySeed>>,
+) {
+  for (const author of authors) {
+    await tx.author.upsert({
+      where: { id: author.author_id },
+      create: { id: author.author_id },
+      update: {},
+    });
+  }
+  for (const user of users) {
+    const existing = await tx.user.findUnique({ where: { id: user.id } });
+    if (existing && (existing.role !== user.role || existing.authorId !== user.authorId)) {
+      throw new Error('Existing identity conflicts with demo seed.');
+    }
+    await tx.user.upsert({
+      where: { id: user.id },
+      create: user,
+      update: {
+        email: user.email,
+        displayName: user.displayName,
+        ...(rotate ? { passwordHash: user.passwordHash } : {}),
+      },
+    });
+    if (rotate) await tx.session.deleteMany({ where: { userId: user.id } });
+  }
   return { authors: authors.length, users: users.length };
+}
+
+export async function seedIdentity(
+  client: PrismaClient,
+  rawAuthors: unknown,
+  rawCredentials: unknown,
+) {
+  const prepared = await prepareIdentitySeed(rawAuthors, rawCredentials);
+  return client.$transaction((tx) => writeIdentitySeed(tx, prepared), { timeout: 15000 });
 }

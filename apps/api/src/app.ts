@@ -8,12 +8,15 @@ import type { DatabaseHealth } from './infrastructure/database.js';
 import { HttpError, installErrorHandling } from './infrastructure/errors.js';
 import { installAuthentication } from './modules/auth/http.js';
 import type { AuthOptions } from './modules/auth/service.js';
+import { installCatalog } from './modules/catalog/http.js';
+import type { CatalogService } from './modules/catalog/service.js';
 
 interface AppOptions {
   database: DatabaseHealth;
   logLevel?: string;
   webRoot?: string;
   auth?: AuthOptions;
+  catalog?: CatalogService;
 }
 
 export async function buildApp(options: AppOptions) {
@@ -48,6 +51,7 @@ export async function buildApp(options: AppOptions) {
       }
     });
 
+  if (options.catalog) installCatalog(app, options.catalog);
   app.get('/health/live', async () => healthResponseSchema.parse({ data: { status: 'ok' } }));
   app.get('/health/ready', async (_request, reply) => {
     reply.header('cache-control', 'no-store');

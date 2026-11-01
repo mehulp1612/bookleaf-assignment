@@ -13,6 +13,7 @@ import { hashToken } from '../src/modules/auth/service.js';
 import { verifyPassword } from '../src/modules/auth/passwords.js';
 import { buildApp } from '../src/app.js';
 import { requireRole } from '../src/modules/auth/http.js';
+import { applyTestMigrations } from './helpers/migrations.js';
 
 async function verifyHttpAuthentication(
   client: PrismaClient,
@@ -149,12 +150,7 @@ test(
       const root = process.cwd().replaceAll('\\', '/').endsWith('/apps/api')
         ? resolve('../..')
         : process.cwd();
-      await connection.query(
-        await readFile(
-          resolve(root, 'apps/api/prisma/migrations/202611010001_identity/migration.sql'),
-          'utf8',
-        ),
-      );
+      await applyTestMigrations(connection);
       const data: unknown = JSON.parse(
         await readFile(resolve(root, 'FULLSTACK-SAMPLEDATA (1) (1) (1).json'), 'utf8'),
       );

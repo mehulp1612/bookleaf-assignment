@@ -3,6 +3,7 @@ import { buildApp } from './app.js';
 import { ConfigurationError, loadEnvironment } from './infrastructure/config.js';
 import { createDatabase } from './infrastructure/database.js';
 import { createPrismaAuthStore } from './modules/auth/prisma-store.js';
+import { createCatalogService } from './modules/catalog/service.js';
 
 async function main() {
   const env = loadEnvironment();
@@ -10,6 +11,7 @@ async function main() {
   const app = await buildApp({
     database,
     logLevel: env.LOG_LEVEL,
+    catalog: createCatalogService(database.client),
     auth: {
       store: createPrismaAuthStore(database.client),
       appOrigin: env.APP_ORIGIN,

@@ -1,5 +1,7 @@
 # Shared contracts
 
+M03 implements the book list/detail contracts. Lists use stable ID-ascending order and the shared pagination schema; offsets above PostgreSQL's supported integer range return 400. An author may supply their own authorId filter; a different authorId returns 403. Admins may filter any author. Missing or inaccessible detail records both return 404. Internal ownership and context helpers take a trusted principal and explicit target authorId; even admins must supply a matching book/author pair. See [Catalog](catalog.md) for the helper return shapes and snapshot limitations.
+
 These agreements allow backend modules and frontend screens to be developed against fixtures. M01 implements them as runtime schemas and TypeScript types in `packages/contracts/src/index.ts`, with fixture exports in `packages/contracts/src/fixtures.ts`. Endpoint metadata is not a registered backend workflow. Changes must update schemas, fixtures, documentation, and affected consumers together.
 
 ## Enumerations

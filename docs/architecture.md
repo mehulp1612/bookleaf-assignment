@@ -1,5 +1,7 @@
 # Architecture and scope
 
+M03 implementation: the catalog extends M02's Author table in place and adds Book. Author profile columns remain nullable for identity-only anchors, while catalog import requires complete profiles. Imports and combined demo seeds use atomic transactions and never delete records missing from the sample. Currency is stored as bounded BIGINT paise, dates as DATE, and nullable production fields remain null. Read endpoints and internal context helpers enforce ownership using the persisted authentication principal. See [Catalog](catalog.md) for migration, import, and module integration details.
+
 ## Product goal
 
 Authors can see their books and raise support tickets. Administrators can prioritize work, review AI suggestions, send replies, add private notes, and manage ticket status. AI assists staff; it never sends a reply automatically.
