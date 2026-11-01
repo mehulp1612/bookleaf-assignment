@@ -99,4 +99,4 @@ node .tmp/m02-api-check/test/seed.test.js
 node .tmp/m02-api-check/test/identity-db.test.js
 ```
 
-M03 adds catalog import to the combined db:seed command; see [Catalog](catalog.md). M04 now implements the manual [ticket API](tickets.md). M07/M08 will supply the sign-in interface; this checkpoint does not provide browser login screens.
+M03 adds catalog import to the combined db:seed command; see [Catalog](catalog.md). M04 implements the manual [ticket API](tickets.md). M07 now supplies the shared sign-in interface and [author screens](author-interface.md); M08 will add admin screens.

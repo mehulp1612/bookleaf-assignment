@@ -1,10 +1,12 @@
 # BookLeaf Author Support
 
-React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01 foundations, M02 identity, M03 catalog, and M04 manual ticket API are implemented. AI calls, job execution, and sign-in/support screens are not implemented yet.
+React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01 foundations, M02 identity, M03 catalog, M04 manual ticket API, and M07 author screens are implemented. Admin screens, AI calls, and job execution are not implemented yet.
 
 ## Current verification status
 
-M04 adds protected ticket creation/list/detail, admin updates, replies, private notes, change events, revision conflicts, persisted reply idempotency, and atomic classification enqueue. PostgreSQL and live HTTP tests pass. Apply its new migration with `npm run db:deploy` from a normal terminal; no new seed is required. Jobs remain queued until M06. See [Ticket management](docs/tickets.md) for API usage and integration details.
+M07 adds login/logout, owned books, question submission, ticket lists/details, and visible-tab polling against the real API. Six web tests and workspace typechecking pass. The Vite build and interactive browser journey remain blocked by this environment's process restrictions; see [Author interface](docs/author-interface.md) for exact results and a repeatable browser test script. Run `npm run dev` locally, open `http://localhost:5173`, and sign in with a seeded author email and DEMO_AUTHOR_PASSWORD. All three existing database migrations are confirmed applied; M07 needs no migration or reseed.
+
+M04 adds protected ticket creation/list/detail, admin updates, replies, private notes, change events, revision conflicts, persisted reply idempotency, and atomic classification enqueue. PostgreSQL and live HTTP tests pass, and its migration is applied in this workspace. Fresh installations should run `npm run db:deploy`. Jobs remain queued until M06. See [Ticket management](docs/tickets.md) for API usage and integration details.
 
 M02 adds login/logout/current-user routes, hashed opaque sessions, backend guards, CSRF protection, durable throttling, and demo identity seeding. Its security/seed-validation tests and live PostgreSQL integration test pass, including real HTTP authentication, repeatable seeding, concurrent throttling, and session revocation. See [Identity and access](docs/identity.md) for setup and test details.
 
@@ -58,7 +60,7 @@ Open `http://localhost:5173`. Vite serves the web application; Fastify listens o
 
 Root `npm run dev` builds and watches contracts, generates Prisma, and runs the API and web watchers together. Stop with Ctrl+C. Update `PORT`, `WEB_PORT`, and `APP_ORIGIN` consistently if you use different ports. Environment values already supplied by the operating system take precedence over `.env`.
 
-The schema includes identity/session/throttle tables, author profiles, books, tickets, replies, notes, events, and queued classification jobs. For a fresh installation, configure the dedicated demo password variables from `.env.example`, then run `npm run db:deploy` and `npm run db:seed`. See [demo seed instructions](docs/identity.md). The combined seed imports 10 authors and 18 books and links demo accounts while preserving support data. Use `npm run db:import` for catalog-only import without changing login accounts. The user confirmed M03 migration and seeding; only the new M04 migration remains pending in this workspace's application database.
+The schema includes identity/session/throttle tables, author profiles, books, tickets, replies, notes, events, and queued classification jobs. For a fresh installation, configure the dedicated demo password variables from `.env.example`, then run `npm run db:deploy` and `npm run db:seed`. See [demo seed instructions](docs/identity.md). The combined seed imports 10 authors and 18 books and links demo accounts while preserving support data. Use `npm run db:import` for catalog-only import without changing login accounts. All committed migrations are applied in this workspace's application database.
 
 ## Commands
 
@@ -115,7 +117,7 @@ Fastify serves hashed Vite assets with long-lived caching and the HTML document 
 - Money uses integer paise. Calendar dates retain YYYY-MM-DD. Production nulls are distinct from zero.
 - AI draft output is a discriminated union: NOT_REQUESTED has only state; QUEUED/RUNNING have metadata; SUCCEEDED adds text; FAILED adds a safe reason.
 
-See the [implementation guide](docs/README.md) for module prompts and the next step in the agreed delivery order, **M07 Author interface**. M05 AI and M06 worker remain separate backend modules.
+See the [implementation guide](docs/README.md) for module prompts and the next step in the agreed delivery order, **M08 Admin interface**. M05 AI and M06 worker remain separate backend modules.
 
 ## Framework references
 

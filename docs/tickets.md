@@ -13,7 +13,7 @@ npm run dev
 
 The M04 migration adds Ticket, TicketReply, TicketNote, TicketEvent, and AiJob tables, enums, foreign keys, indexes, and revision/count checks. Existing catalog and identity data remain intact. No ticket seed is required. Existing demo accounts work; `npm run db:seed` can still be rerun and preserves tickets, replies, notes, events, and jobs.
 
-Agent-side migration deployment is blocked by Prisma's schema-engine subprocess EPERM. All migrations have been applied and tested against isolated schemas in the real local PostgreSQL container. The application database still needs the command above; its migration ledger has not been edited manually.
+Agent-side migration deployment is blocked by Prisma's schema-engine subprocess EPERM. All migrations have been applied and tested against isolated schemas in the real local PostgreSQL container. During M07, the application database was verified to have all three migrations applied. Fresh installations still need the command above; the migration ledger has not been edited manually.
 
 ## Manual API
 
@@ -78,4 +78,4 @@ Injected database triggers verify rollback when writes fail after reply/event cr
 
 Set TEST_DATABASE_URL to a local disposable PostgreSQL database before `npm test`. Integration tests create random schemas, apply all migrations, and remove only their generated schemas. Without this explicit variable, database tests are skipped. The development role needs schema-creation rights.
 
-Next in the agreed fastest delivery sequence is **M07 Author interface**, then M08 Admin interface; M05 AI and M06 worker remain separate backend modules. No frontend or AI infrastructure is added by M04.
+M07 now implements the [Author interface](author-interface.md); its browser acceptance remains outstanding. Next is M08 Admin interface; M05 AI and M06 worker remain separate backend modules. No frontend or AI infrastructure was added by M04 itself.

@@ -1,75 +1,101 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Link, Route, Routes } from 'react-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router';
+import { QueryClientProvider, useMutation, useIsMutating } from '@tanstack/react-query';
+import { createQueryClient } from './shared/queries';
+import { ErrorNotice, Loading } from './shared/ui';
+import { SessionProvider, useSession } from './features/auth/session';
+import { Login } from './features/auth/Login';
+import { Books } from './features/books/Books';
+import { TicketForm } from './features/author-tickets/TicketForm';
+import { Tickets, TicketDetail } from './features/author-tickets/Tickets';
 import './styles.css';
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
-
-function FoundationPage() {
-  return (
-    <section className="welcome" aria-labelledby="welcome-title">
-      <p className="eyebrow">AUTHOR SUPPORT</p>
-      <h1 id="welcome-title">
-        A little more clarity.
-        <br />A little less waiting.
-      </h1>
-      <p className="intro">
-        A dedicated space for your books, your questions, and the people here to help.
-      </p>
-      <div className="notice" role="status">
-        <span className="notice-dot" aria-hidden="true" />
-        <div>
-          <strong>Your support portal is taking shape.</strong>
-          <p>Author sign-in and support services will be available soon.</p>
-        </div>
-      </div>
-      <div className="features">
-        <article>
-          <span aria-hidden="true">01</span>
-          <h2>Your books</h2>
-          <p>Publication details and royalty information, together in one place.</p>
-        </article>
-        <article>
-          <span aria-hidden="true">02</span>
-          <h2>Your questions</h2>
-          <p>A straightforward way to reach the BookLeaf support team.</p>
-        </article>
-        <article>
-          <span aria-hidden="true">03</span>
-          <h2>Clear updates</h2>
-          <p>Follow each conversation and know what happens next.</p>
-        </article>
-      </div>
-    </section>
-  );
-}
-
 function App() {
+  const { session, logout } = useSession();
+  const location = useLocation();
+  const main = useRef<HTMLElement>(null);
+  const signout = useMutation({ mutationFn: logout });
+  const activeMutations = useIsMutating();
+  useEffect(() => {
+    main.current?.focus();
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  const user = session.data;
   return (
     <>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <header>
         <Link className="brand" to="/" aria-label="BookLeaf home">
           <span aria-hidden="true">B</span>BookLeaf
           <span className="brand-subtitle">Publishing</span>
         </Link>
-        <span className="header-label">Author Support</span>
+        {user && (
+          <div className="account">
+            <span>{user.displayName}</span>
+            <button
+              className="secondary"
+              onClick={() => signout.mutate()}
+              disabled={activeMutations > 0}
+            >
+              {signout.isPending ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        )}
       </header>
-      <main id="main">
-        <Routes>
-          <Route path="/" element={<FoundationPage />} />
-          <Route
-            path="*"
-            element={
-              <section className="welcome">
-                <h1>Page not found</h1>
-                <p>
-                  <Link to="/">Return to BookLeaf</Link>
-                </p>
-              </section>
-            }
-          />
-        </Routes>
+      {user?.role === 'AUTHOR' && (
+        <nav className="main-nav" aria-label="Main navigation">
+          <NavLink to="/books">My books</NavLink>
+          <NavLink to="/tickets" end>
+            My questions
+          </NavLink>
+          <NavLink to="/tickets/new">Ask a question</NavLink>
+        </nav>
+      )}
+      <main id="main" ref={main} tabIndex={-1}>
+        {signout.error && <ErrorNotice error={signout.error} />}{' '}
+        {session.isPending ? (
+          <Loading>Checking your session…</Loading>
+        ) : !user ? (
+          session.error ? (
+            <ErrorNotice error={session.error} retry={() => void session.refetch()} />
+          ) : (
+            <Login />
+          )
+        ) : user.role !== 'AUTHOR' ? (
+          <section className="panel empty">
+            <h1>Author portal</h1>
+            <p>
+              You are signed in with an administrator account. The admin workspace is not available
+              yet. Sign out to use an author account.
+            </p>
+          </section>
+        ) : (
+          <>
+            {session.error && (
+              <ErrorNotice error={session.error} retry={() => void session.refetch()} />
+            )}
+            <Routes>
+              <Route path="/" element={<Navigate to="/books" replace />} />
+              <Route path="/login" element={<Navigate to="/books" replace />} />
+              <Route path="/books" element={<Books />} />
+              <Route path="/tickets" element={<Tickets />} />
+              <Route path="/tickets/new" element={<TicketForm />} />
+              <Route path="/tickets/:id" element={<TicketDetail />} />
+              <Route
+                path="*"
+                element={
+                  <section className="empty">
+                    <h1>Page not found</h1>
+                    <Link to="/books">Return to my books</Link>
+                  </section>
+                }
+              />
+            </Routes>
+          </>
+        )}
       </main>
       <footer>
         <span>BookLeaf Publishing</span>
@@ -78,14 +104,15 @@ function App() {
     </>
   );
 }
-
 const root = document.getElementById('root');
 if (!root) throw new Error('Application root is missing.');
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={createQueryClient()}>
       <BrowserRouter>
-        <App />
+        <SessionProvider>
+          <App />
+        </SessionProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,
