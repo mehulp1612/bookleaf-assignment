@@ -1,6 +1,6 @@
 # BookLeaf implementation guide
 
-Build the Author Support and Communication Portal in small, independently testable modules. This directory records the agreed scope, interfaces, and prompts for implementing each module. M01 is installed and its foundation tests pass; web build/browser verification and a successful database connection remain outstanding. Business workflows are not implemented yet.
+Build the Author Support and Communication Portal in small, independently testable modules. This directory records the agreed scope, interfaces, and prompts for implementing each module. M01 foundations and M02 backend identity are implemented. M02 live PostgreSQL and HTTP integration checks pass; M01 web build/browser verification remains outstanding. Catalog, tickets, and AI workflows are not implemented yet.
 
 ## Read in this order
 
@@ -9,6 +9,7 @@ Build the Author Support and Communication Portal in small, independently testab
 3. [Modules and implementation prompts](modules.md): module responsibilities, acceptance checks, and copyable prompts.
 4. [Delivery checklist](delivery.md): integration checks and submission requirements.
 5. [Local setup](../README.md) and [M01 verification](m01-verification.md): commands, evidence, and outstanding checks.
+6. [Identity and access](identity.md): M02 security behavior, migration/seed instructions, and verification.
 
 ## Fastest implementation path
 
@@ -34,7 +35,7 @@ Modules can also be developed independently against the contracts and fixtures. 
 | Module                       | Status                                                                                     |
 | ---------------------------- | ------------------------------------------------------------------------------------------ |
 | M01 Foundation and contracts | Implemented; 12 tests pass; web/runtime acceptance checks remain (see verification report) |
-| M02 Identity and access      | Not started                                                                                |
+| M02 Identity and access      | Complete; security, seed, PostgreSQL, and real HTTP integration checks pass                |
 | M03 Author and book catalog  | Not started                                                                                |
 | M04 Ticket management        | Not started                                                                                |
 | M05 Knowledge base and AI    | Not started                                                                                |

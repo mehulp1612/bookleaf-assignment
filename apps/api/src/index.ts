@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { buildApp } from './app.js';
 import { ConfigurationError, loadEnvironment } from './infrastructure/config.js';
 import { createDatabase } from './infrastructure/database.js';
+import { createPrismaAuthStore } from './modules/auth/prisma-store.js';
 
 async function main() {
   const env = loadEnvironment();
@@ -9,6 +10,12 @@ async function main() {
   const app = await buildApp({
     database,
     logLevel: env.LOG_LEVEL,
+    auth: {
+      store: createPrismaAuthStore(database.client),
+      appOrigin: env.APP_ORIGIN,
+      production: env.NODE_ENV === 'production',
+      sessionTtlSeconds: env.SESSION_TTL_SECONDS,
+    },
     ...(env.NODE_ENV === 'production'
       ? { webRoot: fileURLToPath(new URL('../../web/dist', import.meta.url)) }
       : {}),

@@ -21,6 +21,7 @@ export const environmentSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     APP_ORIGIN: originSchema.default('http://localhost:5173'),
     DATABASE_URL: databaseUrlSchema,
+    SESSION_TTL_SECONDS: z.coerce.number().int().min(60).max(604800).default(28800),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),

@@ -1,4 +1,4 @@
-// Business modules add their own models and migrations starting in M02.
+// M02 owns identity. M03 extends Author with catalog fields and books.
 generator client {
   provider = "prisma-client"
   output = "../src/generated/prisma"
@@ -8,4 +8,45 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  AUTHOR
+  ADMIN
+}
+
+model Author {
+  id   String @id
+  user User?
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  displayName  String
+  passwordHash String
+  role         Role
+  authorId     String?   @unique
+  author       Author?   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  sessions     Session[]
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+}
+
+model Session {
+  tokenHash String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LoginThrottle {
+  key       String   @id
+  attempts  Int
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
 }

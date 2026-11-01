@@ -1,5 +1,9 @@
 # M01 implementation and verification
 
+## Database follow-up
+
+Docker PostgreSQL is now configured, and the user applied the identity migration. The database connection and real HTTP readiness endpoint pass. M02's isolated PostgreSQL/HTTP integration test also passes. This resolves the database-availability blocker in the historical record below; M01 web build/browser acceptance and a clean npm ci checkpoint remain outstanding.
+
 ## Current verification on 2026-10-31
 
 The user completed installation. `npm ls --depth=0` succeeds and `package-lock.json` exists. The initial installation blocker is resolved.

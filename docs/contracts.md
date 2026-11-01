@@ -75,6 +75,8 @@ Use distinct author and admin schemas. Do not send admin fields to authors and r
 
 All paths above follow `/api/v1`. Public liveness/readiness endpoints may exist outside the business API; expose no secrets.
 
+M02 implements login/logout/me. API mutations require `Origin` equal to APP_ORIGIN and `X-BookLeaf-Request: 1`; missing or mismatched headers return 403. The shared web request helper adds the custom header. All registered business routes except POST login require a persisted session by default, and admin-only handlers attach `requireRole('ADMIN')`. `request.user` contains CurrentUser; use its `authorId` for future ownership checks. Identity responses use no-store caching. See [Identity and access](identity.md) for cookie, expiry, throttling, and seeding details.
+
 Queue query parameters: `status`, `category`, `priority`, `createdFrom`, `createdTo`, `page`, `pageSize`, `sort`. Date filters are inclusive calendar dates interpreted in UTC; internally use an exclusive next-day boundary. Author filters are restricted to public fields such as status/date. Default admin sort puts unresolved tickets first, ordered by priority descending and creation time ascending, with ID as a stable tie-breaker. Support explicit oldest/newest sorting. No date filter is active by default because sample records are historical.
 
 ## Validation and state rules

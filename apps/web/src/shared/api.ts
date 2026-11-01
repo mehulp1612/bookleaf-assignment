@@ -19,7 +19,11 @@ export async function request<T>(
 ): Promise<T> {
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\'))
     throw new Error('Use a same-origin API path.');
-  const response = await fetch(path, { ...init, credentials: 'same-origin' });
+  const headers = new Headers(init?.headers);
+  if (!['GET', 'HEAD', 'OPTIONS'].includes((init?.method ?? 'GET').toUpperCase())) {
+    headers.set('x-bookleaf-request', '1');
+  }
+  const response = await fetch(path, { ...init, headers, credentials: 'same-origin' });
   const body: unknown = response.status === 204 ? undefined : await response.json();
   if (!response.ok) {
     const parsed = errorResponseSchema.safeParse(body);

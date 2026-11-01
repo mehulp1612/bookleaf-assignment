@@ -6,11 +6,14 @@ import fastifyStatic from '@fastify/static';
 import { healthResponseSchema } from '@bookleaf/contracts';
 import type { DatabaseHealth } from './infrastructure/database.js';
 import { HttpError, installErrorHandling } from './infrastructure/errors.js';
+import { installAuthentication } from './modules/auth/http.js';
+import type { AuthOptions } from './modules/auth/service.js';
 
 interface AppOptions {
   database: DatabaseHealth;
   logLevel?: string;
   webRoot?: string;
+  auth?: AuthOptions;
 }
 
 export async function buildApp(options: AppOptions) {
@@ -37,6 +40,13 @@ export async function buildApp(options: AppOptions) {
     reply.header('x-content-type-options', 'nosniff');
   });
   app.addHook('onClose', async () => options.database.close());
+  if (options.auth) await installAuthentication(app, options.auth);
+  else
+    app.addHook('onRequest', async (request) => {
+      if (request.routeOptions.url?.startsWith('/api/v1/')) {
+        throw new HttpError(503, 'INTERNAL_ERROR', 'Authentication is not configured.');
+      }
+    });
 
   app.get('/health/live', async () => healthResponseSchema.parse({ data: { status: 'ok' } }));
   app.get('/health/ready', async (_request, reply) => {
