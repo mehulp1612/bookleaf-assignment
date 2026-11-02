@@ -12,6 +12,9 @@ import { installCatalog } from './modules/catalog/http.js';
 import type { CatalogService } from './modules/catalog/service.js';
 import { installTickets } from './modules/tickets/http.js';
 import type { TicketService } from './modules/tickets/service.js';
+import { installAiJobs } from './modules/jobs/http.js';
+import type { JobService } from './modules/jobs/service.js';
+import type { createJobRunner } from './modules/jobs/runner.js';
 
 interface AppOptions {
   database: DatabaseHealth;
@@ -20,6 +23,8 @@ interface AppOptions {
   auth?: AuthOptions;
   catalog?: CatalogService;
   tickets?: TicketService;
+  jobs?: JobService;
+  runner?: ReturnType<typeof createJobRunner>;
 }
 
 export async function buildApp(options: AppOptions) {
@@ -45,7 +50,10 @@ export async function buildApp(options: AppOptions) {
     reply.header('x-request-id', request.id);
     reply.header('x-content-type-options', 'nosniff');
   });
-  app.addHook('onClose', async () => options.database.close());
+  app.addHook('onClose', async () => {
+    await options.runner?.stop();
+    await options.database.close();
+  });
   if (options.auth) await installAuthentication(app, options.auth);
   else
     app.addHook('onRequest', async (request) => {
@@ -56,6 +64,7 @@ export async function buildApp(options: AppOptions) {
 
   if (options.catalog) installCatalog(app, options.catalog);
   if (options.tickets) installTickets(app, options.tickets);
+  if (options.jobs) installAiJobs(app, options.jobs);
   app.get('/health/live', async () => healthResponseSchema.parse({ data: { status: 'ok' } }));
   app.get('/health/ready', async (_request, reply) => {
     reply.header('cache-control', 'no-store');

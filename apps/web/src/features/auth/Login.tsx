@@ -56,7 +56,7 @@ export function Login() {
       </div>
       <div className="panel login-panel">
         <h2>Welcome back</h2>
-        <p className="muted">Sign in with your BookLeaf author account.</p>
+        <p className="muted">Sign in with your BookLeaf account.</p>
         {(draft || expired) && (
           <p className="notice" role="status">
             Your session has ended. Sign in again to continue.{' '}

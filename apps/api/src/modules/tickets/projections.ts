@@ -17,6 +17,12 @@ export const summaryInclude = {
 } satisfies Prisma.TicketInclude;
 export const detailInclude = {
   ...summaryInclude,
+  jobs: {
+    where: { task: 'DRAFT' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    take: 1,
+    select: { id: true, state: true },
+  },
   replies: {
     include: { sender: { select: person } },
     orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
@@ -98,6 +104,6 @@ export function detailDto(row: Detail, user: CurrentUser) {
       newValue: e.newValue,
       createdAt: e.createdAt.toISOString(),
     })),
-    draftState: 'NOT_REQUESTED',
+    draftState: row.jobs.find((job) => job.id === row.draftJobId)?.state ?? 'NOT_REQUESTED',
   });
 }

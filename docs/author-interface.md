@@ -10,7 +10,7 @@ The existing PostgreSQL container, all three migrations, and demo identities/cat
 npm run dev
 ```
 
-Open `http://localhost:5173` and use a sample author's email with the configured DEMO_AUTHOR_PASSWORD. Vite proxies API requests to Fastify on port 3000; cookies and CSRF requests remain same-origin. No credentials or provider configuration are embedded in the web code. Admin logins receive a clear author-portal message and a sign-out button; no admin screens are included.
+Open `http://localhost:5173` and use a sample author's email with the configured DEMO_AUTHOR_PASSWORD. Vite proxies API requests to Fastify on port 3000; cookies and CSRF requests remain same-origin. No credentials or provider configuration are embedded in the web code. M08 now routes admin logins to the separate [admin workspace](admin-interface.md).
 
 ## Screens and behavior
 
@@ -67,6 +67,6 @@ The script uses TEST_DATABASE_URL explicitly, creates a random isolated schema, 
 
 The scripted journey covers invalid/valid login, owned-book validation, preview attachments excluded from POST bodies, general tickets, replies/status arriving without refresh, private-note exclusion, session-expiry draft recovery, interrupted submission recovery, logout/account isolation, production nulls, empty lists, and a mobile overflow check. It writes screenshots under ignored `.tmp/m07-evidence` when it reaches those steps. The script remains unverified beyond setup in this environment; use a normal terminal for its acceptance run.
 
-For a manual acceptance run, sign in as an author, open a book, submit a question, and keep its detail visible. Use the existing admin API from a separate session to add a note, public reply, and status change. Confirm only the public reply/status appears within roughly five seconds, then test hidden-tab pause, offline recovery, session expiry, keyboard operation, and a narrow screen. M08 will provide the admin UI.
+For a manual acceptance run, sign in as an author, open a book, submit a question, and keep its detail visible. Use the M08 admin workspace in a separate session to add a note, public reply, and status change. Confirm only the public reply/status appears within roughly five seconds, then test hidden-tab pause, offline recovery, session expiry, keyboard operation, and a narrow screen.
 
-Next module: **M08 Admin interface**. M05 AI and M06 job execution remain separate backend modules. M07 adds neither admin screens nor provider/worker infrastructure.
+M08 now implements the [Admin interface](admin-interface.md). Next: M05 AI, followed by M06 job execution. M07 itself added neither admin screens nor provider/worker infrastructure.

@@ -9,6 +9,8 @@ import { Login } from './features/auth/Login';
 import { Books } from './features/books/Books';
 import { TicketForm } from './features/author-tickets/TicketForm';
 import { Tickets, TicketDetail } from './features/author-tickets/Tickets';
+import { AdminQueue } from './features/admin-tickets/Queue';
+import { AdminTicket } from './features/admin-tickets/Detail';
 import './styles.css';
 
 function App() {
@@ -54,6 +56,11 @@ function App() {
           <NavLink to="/tickets/new">Ask a question</NavLink>
         </nav>
       )}
+      {user?.role === 'ADMIN' && (
+        <nav className="main-nav" aria-label="Main navigation">
+          <NavLink to="/admin">Support queue</NavLink>
+        </nav>
+      )}
       <main id="main" ref={main} tabIndex={-1}>
         {signout.error && <ErrorNotice error={signout.error} />}{' '}
         {session.isPending ? (
@@ -64,14 +71,14 @@ function App() {
           ) : (
             <Login />
           )
-        ) : user.role !== 'AUTHOR' ? (
-          <section className="panel empty">
-            <h1>Author portal</h1>
-            <p>
-              You are signed in with an administrator account. The admin workspace is not available
-              yet. Sign out to use an author account.
-            </p>
-          </section>
+        ) : user.role === 'ADMIN' ? (
+          <>
+            <Routes>
+              <Route path="/admin" element={<AdminQueue />} />
+              <Route path="/admin/tickets/:id" element={<AdminTicket />} />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </Routes>
+          </>
         ) : (
           <>
             {session.error && (

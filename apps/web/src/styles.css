@@ -523,3 +523,126 @@ fieldset {
     padding: 1.25rem;
   }
 }
+
+/* Admin workspace: public and staff-only actions remain visually distinct. */
+.admin-filters {
+  flex-wrap: wrap;
+  align-items: end;
+}
+.admin-filters > div {
+  flex: 1 1 170px;
+}
+.admin-filters > button {
+  margin-bottom: 0.1rem;
+}
+.priority-critical {
+  background: #fbe2e1;
+  color: #8c201e;
+}
+.priority-high {
+  background: #fff0d2;
+  color: #76500c;
+}
+.priority-medium {
+  background: #edf1e8;
+  color: #365b35;
+}
+.priority-low {
+  background: #edf0f5;
+  color: #47596d;
+}
+.priority-border-critical {
+  border-left: 4px solid #b63b35;
+}
+.priority-border-high {
+  border-left: 4px solid #b5822a;
+}
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+  gap: 1.5rem;
+}
+.admin-conversation,
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+.public-thread {
+  padding: 0.5rem 0;
+}
+.public-compose {
+  border-top: 4px solid #36765a;
+}
+.private-notes {
+  background: #fbf5e9;
+  border: 1px solid #dac699;
+  border-top: 4px solid #90712d;
+}
+.private-note {
+  border-bottom: 1px solid #dfd4bb;
+  padding: 1rem 0;
+}
+.private-note time {
+  display: block;
+  font-size: 0.8rem;
+  color: #6a613f;
+}
+.ai-panel {
+  border-top: 4px solid #7b83a8;
+  background: #f8f9fc;
+}
+.ai-panel button {
+  margin: 0.3rem 0.4rem 0.3rem 0;
+}
+.ai-suggestion {
+  padding: 1rem;
+  border: 1px solid #d9dfeb;
+  background: white;
+  border-radius: 5px;
+}
+.classification-summary {
+  border-top: 1px solid #dce3d9;
+  border-bottom: 1px solid #dce3d9;
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+}
+.assignment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.change-history {
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+}
+.change-history li {
+  margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+}
+.change-history p {
+  margin: 0.25rem 0;
+}
+.admin-sidebar .form-actions {
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.ticket-row time {
+  font-size: 0.8rem;
+  color: #596c60;
+}
+@media (max-width: 950px) {
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    order: -1;
+  }
+  .admin-filters > div {
+    min-width: 140px;
+  }
+  .admin-sidebar .book-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

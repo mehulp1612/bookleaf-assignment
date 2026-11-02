@@ -275,7 +275,12 @@ export function createTicketService(
     },
     // Internal M06 boundary: caller passes a claimed job's lease, never browser input.
     // Ticket and job completion commit atomically, with no provider call in this transaction.
-    async applyClassification(jobId: string, leaseToken: string, raw: unknown) {
+    async applyClassification(
+      jobId: string,
+      leaseToken: string,
+      raw: unknown,
+      resultRunId?: string,
+    ) {
       idSchema.parse(jobId);
       idSchema.parse(leaseToken);
       const result = classificationResultSchema.parse(raw);
@@ -299,6 +304,18 @@ export function createTicketService(
           job.leaseExpiresAt <= now
         )
           throw conflict();
+        if (resultRunId) {
+          const run = await tx.aiRun.findUnique({ where: { id: resultRunId } });
+          if (
+            !run ||
+            run.state !== 'SUCCEEDED' ||
+            run.task !== 'CLASSIFICATION' ||
+            run.ticketId !== row.id ||
+            run.contextFingerprint !== job.contextFingerprint ||
+            JSON.stringify(classificationResultSchema.parse(run.result)) !== JSON.stringify(result)
+          )
+            throw conflict();
+        }
         const data: Prisma.TicketUncheckedUpdateInput = {
           suggestedCategory: result.category,
           suggestedPriority: result.priority,
@@ -330,6 +347,7 @@ export function createTicketService(
             leaseToken: null,
             leaseExpiresAt: null,
             failureReason: null,
+            ...(resultRunId ? { resultRunId } : {}),
           },
         });
         return { ticketId: row.id, state: 'SUCCEEDED' as const };

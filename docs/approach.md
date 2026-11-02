@@ -1,0 +1,13 @@
+# Approach: BookLeaf Author Support
+
+I prioritised a complete manual author-to-admin support workflow before integrating AI. Authors can sign in, inspect their own books, submit book-linked or account-level tickets, and see public replies without refreshing. Administrators can filter and prioritise the queue, assign work, change status, add private notes and send reviewed replies. AI is optional assistance: failures must not prevent support work.
+
+React/TypeScript, Fastify, PostgreSQL/Prisma and shared Zod contracts provide clear module boundaries. A single Node process serves the web application and API from one origin and runs the background worker, avoiding Redis or extra services for this assignment. Backend authorization and explicit author/admin DTOs enforce isolation; frontend guards are only a usability aid.
+
+The supplied catalog is imported repeatably with original IDs, placeholder ISBNs, date-only values and production nulls intact. Monetary snapshots use integer paise. The application does not invent a payout ledger, bank verification, platform sales or production deadlines. Sessions use opaque tokens with hashed storage and absolute expiry; passwords use scrypt. Revisions detect stale edits, and reply idempotency prevents duplicate sends.
+
+The versioned knowledge base supplies selected policy and minimal author-scoped facts to configurable OpenRouter/compatible adapters. Structured validation and reference allowlists constrain outputs. Live testing exposed confusing action-confirmation guidance, so runtime prompts were refined while preserving the source resource. A narrow royalty test passed with GPT-4.1 Nano; this is limited evidence, not comprehensive model-quality certification. Staff must review and deliberately send every draft.
+
+PostgreSQL jobs are created transactionally with tickets, claimed through expiring leases, and completed after freshness checks. Provider calls never hold a database transaction open. Shared budgets, bounded retries, Retry-After, quota/auth pauses and cached results control cost and failure behavior. Manual overrides and dirty editors survive delayed results. Deterministic failure tests and real PostgreSQL/HTTP integration tests verify these boundaries without repeatedly consuming live-model quota.
+
+For the demo, polling replaces WebSockets, attachments are explicitly UI-only, and free hosting may sleep, pausing the worker until wake. Production evolution would separate the worker, add monitoring, expand reviewed AI evaluations, integrate verified royalty/production systems, and add scanned attachment storage and notifications. Deployment and final hosted acceptance remain separate from local verification.

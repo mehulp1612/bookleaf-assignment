@@ -1,8 +1,18 @@
 # BookLeaf Author Support
 
-React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01 foundations, M02 identity, M03 catalog, M04 manual ticket API, and M07 author screens are implemented. Admin screens, AI calls, and job execution are not implemented yet.
+React and TypeScript web application, Fastify REST API, PostgreSQL and Prisma, and a shared Zod contracts package. M01–M08 are implemented, including M06 background execution and AI endpoints. M09 integration and delivery remain outstanding.
 
 ## Current verification status
+
+M09 delivery preparation: the user confirmed successful live draft generation and automatic classification in the local browser. The full production build (including Vite) and PostgreSQL/static-serving HTTP smoke now pass. See [Render + Neon deployment](docs/deployment.md), [API examples](docs/api-examples.md), and the [one-page approach](docs/approach.md). No hosted deployment has been created or verified; public-demo URL/credentials remain pending. A key found in `.env.example` was removed and must be rotated before publication. Earlier module-specific limitations below are historical.
+
+M06 runs a leased PostgreSQL worker alongside the API, with durable budgets, bounded retries, provider pauses, cached/on-demand drafts, and admin AI endpoints. All 88 API/web/contract tests pass, including real PostgreSQL/HTTP orchestration with deterministic providers. See [Background execution](docs/background-jobs.md). Run `npm run db:deploy` in your normal terminal before restarting with `npm run dev`; migration deployment is blocked inside this agent environment. Keep AI disabled until you configure an explicit provider/key/model. No key is currently configured, so live AI remains unverified. Drafts always require deliberate review and sending. Earlier per-module status paragraphs below record their original verification boundaries.
+
+M05 adds configurable OpenRouter/compatible AI services, the faithful versioned assignment knowledge base, output validation and safe AI-run persistence. No key was configured, so live AI quality remains unverified. Configure only the ignored `.env`; see [AI assistance](docs/ai-assistance.md). Run `npm run db:deploy` locally for the new AI-run migration, then `npm run ai:evaluate` when an explicit provider/key/model is configured. The evaluation makes at most two calls. Existing ticket creation and draft endpoints do not call these services until M06.
+
+The user has confirmed both login roles and the manual author/admin browser workflow, including ticket submission, public replies, private-note isolation and automatic updates. Earlier agent-only browser restrictions below remain recorded as historical verification limits.
+
+M08 adds the admin queue and ticket workspace, manual controls, separate public/private editors, safe reply retries, and a draft panel ready for M06's endpoints. All 12 web tests and a real PostgreSQL/HTTP check of the admin adapters pass. Typechecking, lint, and formatting pass. Vite build/browser acceptance remain blocked by environment restrictions; AI states are fixture-tested and the live app reports unavailable draft endpoints honestly. See [Admin interface](docs/admin-interface.md). Sign in with DEMO_ADMIN_EMAIL/DEMO_ADMIN_PASSWORD to open `/admin`; no migration or reseed is needed.
 
 M07 adds login/logout, owned books, question submission, ticket lists/details, and visible-tab polling against the real API. Six web tests and workspace typechecking pass. The Vite build and interactive browser journey remain blocked by this environment's process restrictions; see [Author interface](docs/author-interface.md) for exact results and a repeatable browser test script. Run `npm run dev` locally, open `http://localhost:5173`, and sign in with a seeded author email and DEMO_AUTHOR_PASSWORD. All three existing database migrations are confirmed applied; M07 needs no migration or reseed.
 
@@ -60,6 +70,14 @@ Open `http://localhost:5173`. Vite serves the web application; Fastify listens o
 
 Root `npm run dev` builds and watches contracts, generates Prisma, and runs the API and web watchers together. Stop with Ctrl+C. Update `PORT`, `WEB_PORT`, and `APP_ORIGIN` consistently if you use different ports. Environment values already supplied by the operating system take precedence over `.env`.
 
+The contracts build and watcher share an incremental cache to avoid rewriting compiled files and restarting the API immediately on startup. The API closes its resources and exits explicitly on shutdown so its watcher can restart it cleanly.
+
+API development compiles TypeScript before starting `node --watch dist/index.js`, with a separate TypeScript build watcher for edits. This replaces the silent `tsx watch` launch observed on Windows. Compiler errors appear under `[compiler]`; successful emitted changes restart `[server]`. Fix type errors before expecting new code to run; failed compilations do not emit JavaScript. The first API build can take a few seconds before the server reports `Server listening`.
+
+To isolate a watcher problem, stop the root development command, then run `npm run build -w @bookleaf/contracts`, `npm run build -w @bookleaf/api`, and `npm run start -w @bookleaf/api`. In another terminal run `npm run dev -w @bookleaf/web`. This runs the same API without automatic reload; restart it after rebuilding API changes.
+
+If Vite reports `ECONNREFUSED 127.0.0.1:3000`, the API is not listening; check the `[api]` startup output and restart `npm run dev` after stopping the old command with Ctrl+C. `http://127.0.0.1:3000/health/live` should return HTTP 200, and `/health/ready` also checks PostgreSQL. A signed-out `/api/v1/auth/me` returning HTTP 401 is expected. Open the web app using the exact `APP_ORIGIN` configured in `.env` (by default `http://localhost:5173`), even if Vite prints a `127.0.0.1` URL; mutation origin checks require that match.
+
 The schema includes identity/session/throttle tables, author profiles, books, tickets, replies, notes, events, and queued classification jobs. For a fresh installation, configure the dedicated demo password variables from `.env.example`, then run `npm run db:deploy` and `npm run db:seed`. See [demo seed instructions](docs/identity.md). The combined seed imports 10 authors and 18 books and links demo accounts while preserving support data. Use `npm run db:import` for catalog-only import without changing login accounts. All committed migrations are applied in this workspace's application database.
 
 ## Commands
@@ -91,7 +109,7 @@ The schema includes identity/session/throttle tables, author profiles, books, ti
 
 Unknown API paths return a JSON 404. Error envelopes contain `code`, a safe `message`, optional validation `fieldErrors`, and a generated `requestId`; `x-request-id` is returned as a response header. Readiness does not cache results. Database connection/query timeouts are bounded.
 
-The three identity endpoints are implemented: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. Mutations require an exact matching Origin and `X-BookLeaf-Request: 1`; details are in [Identity and access](docs/identity.md). M03 implements protected `GET /api/v1/books` and `GET /api/v1/books/:id`. M04 implements the six manual ticket routes documented in [Ticket management](docs/tickets.md). AI draft/retry endpoints still exist only as shared schemas. Health endpoints remain public; registered API routes are authenticated by default. Book and ticket queries enforce server-side ownership.
+The three identity endpoints are implemented: `POST /api/v1/auth/login`, `POST /api/v1/auth/logout`, and `GET /api/v1/auth/me`. Mutations require an exact matching Origin and `X-BookLeaf-Request: 1`; details are in [Identity and access](docs/identity.md). M03 implements protected `GET /api/v1/books` and `GET /api/v1/books/:id`. M04 implements the six manual ticket routes documented in [Ticket management](docs/tickets.md). M06 implements draft POST/GET and classification retry endpoints; see docs/api-examples.md for request examples. Health endpoints remain public; registered API routes are authenticated by default. Book and ticket queries enforce server-side ownership.
 
 ## Production serving
 
@@ -117,7 +135,7 @@ Fastify serves hashed Vite assets with long-lived caching and the HTML document 
 - Money uses integer paise. Calendar dates retain YYYY-MM-DD. Production nulls are distinct from zero.
 - AI draft output is a discriminated union: NOT_REQUESTED has only state; QUEUED/RUNNING have metadata; SUCCEEDED adds text; FAILED adds a safe reason.
 
-See the [implementation guide](docs/README.md) for module prompts and the next step in the agreed delivery order, **M08 Admin interface**. M05 AI and M06 worker remain separate backend modules.
+See the [implementation guide](docs/README.md) for module prompts and progress. M01–M08 are implemented; M09 integration and hosted delivery is in progress.
 
 ## Framework references
 

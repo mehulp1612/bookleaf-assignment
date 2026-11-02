@@ -1,5 +1,7 @@
 # Delivery checklist
 
+Latest evidence (2026-11-02): the user confirmed local manual and AI browser journeys. The full production build and HTTP/static/PostgreSQL smoke passed. See [deployment](deployment.md), [API examples](api-examples.md) and [approach](approach.md). Unchecked clean-checkout and hosted items remain acceptance work. A key was removed from `.env.example`; rotate it before publication. No hosted URL or public-demo credentials have been verified.
+
 ## Required end-to-end checks
 
 - [ ] A clean checkout installs, migrates, seeds, builds, and starts using documented commands.
@@ -45,8 +47,8 @@ A small live evaluation should record provider/model, date, tested cases, and ob
 - [ ] README explains local setup, environment variables, migrations, seeding, development, build, and production start.
 - [ ] README explains architecture, module boundaries, AI provider/model rationale, grounding, retries, quota control, caching, and limitations.
 - [ ] API documentation covers every endpoint, authentication, request/response examples, errors, filters, and role restrictions.
-- [ ] Provider-switch guide distinguishes configuration-compatible endpoints from providers needing a new adapter.
-- [ ] Maximum one-page write-up covers priorities, tradeoffs, and future production improvements.
+- [x] Provider-switch guide distinguishes configuration-compatible endpoints from providers needing a new adapter.
+- [x] Maximum one-page write-up covers priorities, tradeoffs, and future production improvements.
 - [ ] Final report separates verified functionality, test-only behavior, and remaining limitations.
 
 ## Scope if time becomes tight

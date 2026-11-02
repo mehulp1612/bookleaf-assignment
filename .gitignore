@@ -9,3 +9,6 @@ coverage/
 *.tsbuildinfo
 apps/api/src/generated/
 .tmp/
+apps/api/.agents
+apps/api/.claude
+apps/api/.windsurf

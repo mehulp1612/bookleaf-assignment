@@ -123,6 +123,7 @@ enum JobState {
 
 enum JobTask {
   CLASSIFICATION
+  DRAFT
 }
 
 enum TicketEventType {
@@ -152,6 +153,7 @@ model Ticket {
   classificationRationale String?
   classificationState     JobState             @default(QUEUED)
   classificationJobId     String?
+  draftJobId              String?
   classificationRevision  Int                  @default(0)
   contextRevision         Int                  @default(0)
   assigneeId              String?
@@ -163,9 +165,48 @@ model Ticket {
   notes                   TicketNote[]
   events                  TicketEvent[]
   jobs                    AiJob[]
+  aiRuns                  AiRun[]
 
   @@index([authorId, createdAt, id])
   @@index([status, priority, createdAt, id])
+}
+
+enum AiRunTask {
+  CLASSIFICATION
+  DRAFT
+}
+
+enum AiRunState {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+model AiRun {
+  id                 String     @id
+  ticketId           String
+  ticket             Ticket     @relation(fields: [ticketId], references: [id], onDelete: Restrict)
+  task               AiRunTask
+  state              AiRunState @default(RUNNING)
+  contextRevision    Int
+  contextFingerprint String
+  promptVersion      String
+  kbVersion          String
+  provider           String
+  model              String
+  result             Json?
+  failure            Json?
+  inputTokens        Int?
+  outputTokens       Int?
+  latencyMs          Int?
+  startedAt          DateTime   @db.Timestamptz(3)
+  finishedAt         DateTime?  @db.Timestamptz(3)
+  jobs               AiJob[] @relation("JobResult")
+  jobId              String?
+  job                AiJob? @relation("JobAttempts", fields: [jobId], references: [id], onDelete: Restrict)
+
+  @@index([ticketId, task, contextFingerprint, startedAt])
+  @@index([jobId])
 }
 
 model TicketReply {
@@ -222,9 +263,26 @@ model AiJob {
   leaseExpiresAt   DateTime? @db.Timestamptz(3)
   contextRevision  Int
   failureReason    String?
+  contextFingerprint String?
+  providerKey      String?
+  resultRunId      String?
+  resultRun        AiRun? @relation("JobResult", fields: [resultRunId], references: [id], onDelete: Restrict)
+  runs             AiRun[] @relation("JobAttempts")
+  stale            Boolean @default(false)
+  force            Boolean @default(false)
   createdAt        DateTime  @default(now()) @db.Timestamptz(3)
   completedAt      DateTime? @db.Timestamptz(3)
 
   @@index([state, availableAt])
   @@index([ticketId])
+  @@index([providerKey, state, leaseExpiresAt])
+}
+
+model AiProviderState {
+  id              String @id
+  windowStartedAt DateTime @db.Timestamptz(3)
+  requests        Int @default(0)
+  paused          Boolean @default(false)
+  pauseReason     String?
+  resumeAt        DateTime? @db.Timestamptz(3)
 }

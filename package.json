@@ -21,6 +21,7 @@
     "format:check": "prettier --check .",
     "db:generate": "npm run db:generate -w @bookleaf/api",
     "db:validate": "npm run db:validate -w @bookleaf/api",
+    "ai:evaluate": "npm run build -w @bookleaf/contracts && npm run build -w @bookleaf/api && node scripts/evaluate-ai.mjs",
     "db:migrate": "npm run db:migrate -w @bookleaf/api",
     "db:deploy": "npm run db:deploy -w @bookleaf/api",
     "start": "npm run start -w @bookleaf/api",

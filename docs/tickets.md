@@ -78,4 +78,4 @@ Injected database triggers verify rollback when writes fail after reply/event cr
 
 Set TEST_DATABASE_URL to a local disposable PostgreSQL database before `npm test`. Integration tests create random schemas, apply all migrations, and remove only their generated schemas. Without this explicit variable, database tests are skipped. The development role needs schema-creation rights.
 
-M07 now implements the [Author interface](author-interface.md); its browser acceptance remains outstanding. Next is M08 Admin interface; M05 AI and M06 worker remain separate backend modules. No frontend or AI infrastructure was added by M04 itself.
+M07 implements the [Author interface](author-interface.md) and M08 the [Admin interface](admin-interface.md); their browser acceptance remains outstanding. Next is M05 AI, followed by M06 execution. No frontend or AI infrastructure was added by M04 itself.
