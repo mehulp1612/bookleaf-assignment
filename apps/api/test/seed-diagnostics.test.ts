@@ -3,6 +3,16 @@ import { test } from 'node:test';
 import { parseEnvironment } from '../src/infrastructure/config.js';
 import { seedFailureMessage, validateSeedCredentials } from '../src/seed-diagnostics.js';
 
+test('database diagnostics emit only allowlisted codes from nested errors', () => {
+  const message = seedFailureMessage('database connection', {
+    code: 'secret-code',
+    message: 'secret-message',
+    cause: { code: 'SELF_SIGNED_CERT_IN_CHAIN', message: 'secret-database-url' },
+  });
+  assert.match(message, /SELF_SIGNED_CERT_IN_CHAIN/);
+  assert.ok(!message.includes('secret'));
+});
+
 test('seed rejects missing, short and identical demo passwords before database work', () => {
   const valid = {
     DEMO_ADMIN_EMAIL: 'admin@example.test',

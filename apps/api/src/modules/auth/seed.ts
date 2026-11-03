@@ -39,24 +39,33 @@ export async function prepareIdentitySeed(rawAuthors: unknown, rawCredentials: u
   if (authors.some((author) => author.email === credentials.DEMO_ADMIN_EMAIL)) {
     throw new Error('Admin email must not match an author.');
   }
-  const users = await Promise.all([
-    ...authors.map(async (author) => ({
+  // Bound scrypt memory on small deployment instances; each user retains a fresh salt.
+  const users: {
+    id: string;
+    authorId: string | null;
+    role: 'AUTHOR' | 'ADMIN';
+    email: string;
+    displayName: string;
+    passwordHash: string;
+  }[] = [];
+  for (const author of authors) {
+    users.push({
       id: `demo-author-${author.author_id}`,
       authorId: author.author_id,
       role: 'AUTHOR' as const,
       email: author.email,
       displayName: author.name,
       passwordHash: await hashPassword(credentials.DEMO_AUTHOR_PASSWORD),
-    })),
-    hashPassword(credentials.DEMO_ADMIN_PASSWORD).then((passwordHash) => ({
-      id: 'demo-admin',
-      authorId: null,
-      role: 'ADMIN' as const,
-      email: credentials.DEMO_ADMIN_EMAIL,
-      displayName: 'Demo administrator',
-      passwordHash,
-    })),
-  ]);
+    });
+  }
+  users.push({
+    id: 'demo-admin',
+    authorId: null,
+    role: 'ADMIN' as const,
+    email: credentials.DEMO_ADMIN_EMAIL,
+    displayName: 'Demo administrator',
+    passwordHash: await hashPassword(credentials.DEMO_ADMIN_PASSWORD),
+  });
   return { authors, users, rotate: credentials.DEMO_RESET_PASSWORDS === 'true' };
 }
 

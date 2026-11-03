@@ -1,7 +1,42 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { test } from 'node:test';
-import { seedAuthorsSchema, seedCredentialsSchema } from '../src/modules/auth/seed.js';
+import {
+  prepareIdentitySeed,
+  seedAuthorsSchema,
+  seedCredentialsSchema,
+} from '../src/modules/auth/seed.js';
+import { verifyPassword } from '../src/modules/auth/passwords.js';
+
+test('seed preparation preserves distinct salts and valid passwords for each identity', async () => {
+  const authorPassword = 'test-only-author-password';
+  const adminPassword = 'test-only-admin-password';
+  const prepared = await prepareIdentitySeed(
+    {
+      authors: [
+        { author_id: 'A1', name: 'First', email: 'first@example.test' },
+        { author_id: 'A2', name: 'Second', email: 'second@example.test' },
+      ],
+    },
+    {
+      DEMO_ADMIN_EMAIL: 'admin@example.test',
+      DEMO_ADMIN_PASSWORD: adminPassword,
+      DEMO_AUTHOR_PASSWORD: authorPassword,
+    },
+  );
+  assert.equal(prepared.users.length, 3);
+  assert.equal(new Set(prepared.users.map((user) => user.passwordHash)).size, 3);
+  for (const user of prepared.users) {
+    assert.equal(
+      await verifyPassword(
+        user.role === 'ADMIN' ? adminPassword : authorPassword,
+        user.passwordHash,
+      ),
+      true,
+    );
+    assert.equal(user.authorId === null, user.role === 'ADMIN');
+  }
+});
 
 test('demo seed requires explicit strong distinct passwords and rejects invalid reset flags', () => {
   const valid = {
