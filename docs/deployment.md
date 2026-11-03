@@ -40,6 +40,8 @@ Let Render supply PORT. Migrations and the repeatable seed run before listening 
 
 ### Troubleshooting startup
 
+`P2028` during database seeding can indicate that the interactive transaction expired. The combined startup seed previously allowed only 15 seconds for dozens of sequential database operations. It now allows 120 seconds (with a 10-second transaction acquisition limit), while preserving one atomic transaction. Password hashing stays outside that transaction. API request transaction limits are unchanged. Deploy the updated code; no database reset or new migration is needed. Prefer nearby Render and Neon regions to reduce network round trips. The SSL-mode warning alone is not a failed connection.
+
 If seeding exits without a failure message, deploy the latest progress diagnostics. They log environment validation, sample loading, database connection, password hashing, database writes, and cleanup. Failures are logged before cleanup, which is bounded to 10 seconds. Demo password hashing runs sequentially to reduce peak memory while retaining independent salts. Missing logs alone do not prove an out-of-memory failure; inspect Render events and metrics if the process is terminated. Known database error codes are safe to share; do not share raw connection strings.
 
 If migrations succeed but the seed fails, check Render environment settings first. Both demo passwords must be 16–128 characters and must differ. Set a valid `DEMO_ADMIN_EMAIL` distinct from the sample authors, and set `DEMO_RESET_PASSWORDS=false`. Production `APP_ORIGIN` must be an exact HTTPS origin with no trailing slash. Enter `NODE_VERSION` as `22.16.0`, without a trailing dot or quotes.

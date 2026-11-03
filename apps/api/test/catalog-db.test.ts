@@ -55,11 +55,20 @@ test(
         (await client.author.findUniqueOrThrow({ where: { id: 'AUTH001' } })).name,
         null,
       );
+      // Reproduce a hosted seed that takes longer than the former 15-second transaction cap.
+      // Each statement remains below the application's two-second statement timeout.
+      await connection.query(`CREATE FUNCTION slow_seed_book() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN PERFORM pg_sleep(0.9); RETURN NEW; END $$`);
+      await connection.query(
+        'CREATE TRIGGER slow_seed_book BEFORE INSERT ON "Book" FOR EACH ROW EXECUTE FUNCTION slow_seed_book()',
+      );
       assert.deepEqual(await seedDemoData(client, raw, credentials), {
         authors: 10,
         books: 18,
         users: 11,
       });
+      await connection.query('DROP TRIGGER slow_seed_book ON "Book"');
+      await connection.query('DROP FUNCTION slow_seed_book()');
       const catalog = createCatalogService(client);
       const admin = currentUserSchema.parse(
         await client.user.findUniqueOrThrow({ where: { id: 'demo-admin' } }),

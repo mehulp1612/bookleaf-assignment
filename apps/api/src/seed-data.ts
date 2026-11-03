@@ -19,6 +19,8 @@ export async function seedDemoData(
       const identityCounts = await writeIdentitySeed(tx, identities);
       return { ...counts, users: identityCounts.users };
     },
-    { isolationLevel: 'Serializable', timeout: 15000 },
+    // Startup-only batch: dozens of sequential writes can exceed 15s over a hosted link.
+    // Keep all-or-nothing semantics and a finite bound; API transaction limits are unchanged.
+    { isolationLevel: 'Serializable', maxWait: 10000, timeout: 120000 },
   );
 }
