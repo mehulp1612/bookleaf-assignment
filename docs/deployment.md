@@ -38,6 +38,12 @@ Let Render supply PORT. Migrations and the repeatable seed run before listening 
 
 ## Verify and submit
 
+### Troubleshooting startup
+
+If migrations succeed but the seed fails, check Render environment settings first. Both demo passwords must be 16–128 characters and must differ. Set a valid `DEMO_ADMIN_EMAIL` distinct from the sample authors, and set `DEMO_RESET_PASSWORDS=false`. Production `APP_ORIGIN` must be an exact HTTPS origin with no trailing slash. Enter `NODE_VERSION` as `22.16.0`, without a trailing dot or quotes.
+
+The seed now reports its failing stage and safe configuration hints without printing secrets or raw database errors. Commit and push this diagnostic change before redeploying to see those messages. The sample JSON must be included in the repository. A successful Prisma migration verifies that CLI's connection, but does not prove the application's PostgreSQL adapter can connect; database-stage failures may still involve TLS, connection/query timeouts, or existing identity conflicts. Do not reset the database to troubleshoot this.
+
 Test the assigned HTTPS URL with both roles: login, book/general ticket creation, automatic classification, draft generation, deliberate edit/send, private-note isolation and polling. Restart the service and confirm data survives. Verify Secure/HttpOnly session cookies and same-origin `/api` requests. Record the real URL and dedicated demo credentials only after these checks; no URL or passwords have been invented here.
 
 Free hosting does not cover model inference charges. Use a dedicated demo key and provider spending limit before distributing public admin credentials. Frequent worker polling keeps Neon compute active while the web process is awake; free quotas still apply. Do not add artificial keep-alive traffic to disguise sleep behavior.
